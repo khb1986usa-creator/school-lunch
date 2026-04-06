@@ -195,7 +195,7 @@
       <form id="attendanceForm" class="form">
         <div class="field">
           <label for="grade">학년</label>
-          <select id="grade" name="grade" class="control" required>
+          <select id="grade" class="control" required>
             <option value="">학년 선택</option>
             <option value="1">1학년</option>
             <option value="2">2학년</option>
@@ -208,7 +208,7 @@
 
         <div class="field">
           <label for="classroom">반</label>
-          <select id="classroom" name="classroom" class="control" required>
+          <select id="classroom" class="control" required>
             <option value="">반 선택</option>
             <option value="1">1반</option>
             <option value="2">2반</option>
@@ -217,15 +217,7 @@
 
         <div class="field">
           <label for="name">이름</label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            class="control"
-            maxlength="20"
-            placeholder="이름 입력"
-            required
-          />
+          <input id="name" type="text" class="control" maxlength="20" placeholder="이름 입력" required />
         </div>
 
         <button id="submitBtn" type="submit" class="submit-btn">제출</button>
@@ -237,8 +229,6 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzoA-qBhMUNaqsaAPdIPa6pqGHNseD7l1p53Nkiz6y1eFl-QmT_8IeF4XEzxLMYmBS57w/exec';
-
     const form = document.getElementById('attendanceForm');
     const grade = document.getElementById('grade');
     const classroom = document.getElementById('classroom');
@@ -262,19 +252,7 @@
       return true;
     }
 
-    function sendBeaconLikeGet(url) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-
-        img.onload = () => resolve();
-        img.onerror = () => resolve(); 
-        // 응답이 이미지가 아니라도 요청은 서버에 도착할 수 있으므로 성공 처리
-
-        img.src = url;
-      });
-    }
-
-    form.addEventListener('submit', async function(event) {
+    form.addEventListener('submit', function(event) {
       event.preventDefault();
 
       if (isSubmitting) return;
@@ -285,41 +263,30 @@
       submitBtn.textContent = '제출 중...';
       showMessage('info', '제출 중입니다...');
 
-      const params = new URLSearchParams({
-        grade: grade.value,
-        classroom: classroom.value,
-        name: nameInput.value.trim(),
-        t: Date.now().toString()
-      });
-
-      const requestUrl = WEB_APP_URL + '?' + params.toString();
-
-      try {
-        await sendBeaconLikeGet(requestUrl);
-
-        setTimeout(() => {
-          form.reset();
-          showMessage('success', '제출이 완료되었습니다.');
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response && response.success) {
+            form.reset();
+            showMessage('success', '제출이 완료되었습니다.');
+          } else {
+            const detail = response && response.error ? '\n' + response.error : '';
+            showMessage('error', (response && response.message ? response.message : '제출에 실패했습니다.') + detail);
+          }
           submitBtn.disabled = false;
           submitBtn.textContent = '제출';
           isSubmitting = false;
-        }, 1200);
-
-      } catch (error) {
-        showMessage('error', '제출 중 오류가 발생했습니다.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = '제출';
-        isSubmitting = false;
-      }
-    });
-
-    [grade, classroom, nameInput].forEach((el) => {
-      el.addEventListener('input', () => {
-        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-      });
-      el.addEventListener('change', () => {
-        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-      });
+        })
+        .withFailureHandler(function(error) {
+          showMessage('error', '연결 중 오류가 발생했습니다.\n' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = '제출';
+          isSubmitting = false;
+        })
+        .submitAttendance({
+          grade: grade.value,
+          classroom: classroom.value,
+          name: nameInput.value.trim()
+        });
     });
   </script>
 </body>
