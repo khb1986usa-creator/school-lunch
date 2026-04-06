@@ -26,9 +26,7 @@
       --radius-md: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -136,10 +134,6 @@
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
     }
 
-    .control::placeholder {
-      color: #98a2b3;
-    }
-
     .submit-btn {
       margin-top: 4px;
       width: 100%;
@@ -152,13 +146,11 @@
       font-weight: 800;
       cursor: pointer;
       box-shadow: 0 16px 32px rgba(79, 70, 229, 0.24);
-      transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .submit-btn:disabled {
       opacity: 0.7;
       cursor: not-allowed;
-      transform: none;
     }
 
     .message {
@@ -173,24 +165,10 @@
       word-break: break-all;
     }
 
-    .message.show {
-      display: block;
-    }
-
-    .message.info {
-      background: var(--info-bg);
-      color: var(--info-text);
-    }
-
-    .message.success {
-      background: var(--success-bg);
-      color: var(--success-text);
-    }
-
-    .message.error {
-      background: var(--error-bg);
-      color: var(--error-text);
-    }
+    .message.show { display: block; }
+    .message.info { background: var(--info-bg); color: var(--info-text); }
+    .message.success { background: var(--success-bg); color: var(--success-text); }
+    .message.error { background: var(--error-bg); color: var(--error-text); }
 
     .footer-note {
       margin: 14px 0 0;
@@ -200,33 +178,12 @@
     }
 
     @media (max-width: 480px) {
-      body {
-        padding: 14px;
-        align-items: stretch;
-      }
-
-      .wrap {
-        max-width: 100%;
-      }
-
-      .card {
-        padding: 24px 18px 18px;
-        border-radius: 22px;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
-
-      .desc {
-        font-size: 14px;
-      }
-
-      .control,
-      .submit-btn {
-        height: 52px;
-        font-size: 15px;
-      }
+      body { padding: 14px; align-items: stretch; }
+      .wrap { max-width: 100%; }
+      .card { padding: 24px 18px 18px; border-radius: 22px; }
+      h1 { font-size: 26px; }
+      .desc { font-size: 14px; }
+      .control, .submit-btn { height: 52px; font-size: 15px; }
     }
   </style>
 </head>
@@ -262,21 +219,13 @@
 
         <div class="field">
           <label for="name">이름</label>
-          <input
-            id="name"
-            type="text"
-            class="control"
-            maxlength="20"
-            placeholder="이름 입력"
-            required
-          />
+          <input id="name" type="text" class="control" maxlength="20" placeholder="이름 입력" required />
         </div>
 
         <button id="submitBtn" type="submit" class="submit-btn">제출</button>
       </form>
 
       <div id="messageBox" class="message info show">학년, 반, 이름을 입력한 뒤 제출하세요.</div>
-
       <p class="footer-note">제출한 내용은 구글 시트에 저장됩니다.</p>
     </div>
   </div>
@@ -290,20 +239,29 @@
     const messageBox = document.getElementById('messageBox');
 
     let isSubmitting = false;
+    let timeoutId = null;
 
     function showMessage(type, text) {
       messageBox.className = 'message show ' + type;
       messageBox.textContent = text;
     }
 
+    function resetSubmitState() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출';
+      isSubmitting = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+
     function validateForm() {
       const name = nameInput.value.trim();
-
       if (!grade.value || !classroom.value || !name) {
         showMessage('error', '학년, 반, 이름을 입력한 뒤 제출하세요.');
         return false;
       }
-
       return true;
     }
 
@@ -313,10 +271,20 @@
       if (isSubmitting) return;
       if (!validateForm()) return;
 
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        showMessage('error', '현재 페이지는 배포된 Apps Script 웹앱이 아닙니다.\n배포 후 받은 /exec 주소로 다시 접속하세요.');
+        return;
+      }
+
       isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = '제출 중...';
       showMessage('info', '제출 중입니다...');
+
+      timeoutId = setTimeout(function() {
+        showMessage('error', '응답이 지연되고 있습니다.\n배포된 /exec 주소로 접속했는지 확인하고 다시 시도하세요.');
+        resetSubmitState();
+      }, 10000);
 
       google.script.run
         .withSuccessHandler(function(response) {
@@ -335,21 +303,13 @@
             showMessage('success', response.message + debugText);
           } else {
             const detail = response && response.error ? '\n' + response.error : '';
-            showMessage(
-              'error',
-              (response && response.message ? response.message : '제출에 실패했습니다.') + detail
-            );
+            showMessage('error', (response && response.message ? response.message : '제출에 실패했습니다.') + detail);
           }
-
-          submitBtn.disabled = false;
-          submitBtn.textContent = '제출';
-          isSubmitting = false;
+          resetSubmitState();
         })
         .withFailureHandler(function(error) {
-          showMessage('error', '연결 중 오류가 발생했습니다.\n' + error.message);
-          submitBtn.disabled = false;
-          submitBtn.textContent = '제출';
-          isSubmitting = false;
+          showMessage('error', '연결 중 오류가 발생했습니다.\n' + (error && error.message ? error.message : error));
+          resetSubmitState();
         })
         .submitAttendance({
           grade: grade.value,
@@ -360,15 +320,10 @@
 
     [grade, classroom, nameInput].forEach((el) => {
       el.addEventListener('input', () => {
-        if (!isSubmitting) {
-          showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-        }
+        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
       });
-
       el.addEventListener('change', () => {
-        if (!isSubmitting) {
-          showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-        }
+        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
       });
     });
   </script>
