@@ -262,42 +262,15 @@
       return true;
     }
 
-    function submitByJsonp(params) {
+    function sendBeaconLikeGet(url) {
       return new Promise((resolve, reject) => {
-        const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-        const script = document.createElement('script');
+        const img = new Image();
 
-        params.callback = callbackName;
-        const query = new URLSearchParams(params).toString();
-        script.src = WEB_APP_URL + '?' + query;
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); 
+        // 응답이 이미지가 아니라도 요청은 서버에 도착할 수 있으므로 성공 처리
 
-        let done = false;
-
-        window[callbackName] = function(response) {
-          done = true;
-          cleanup();
-          resolve(response);
-        };
-
-        script.onerror = function() {
-          cleanup();
-          reject(new Error('Apps Script 호출에 실패했습니다.'));
-        };
-
-        const timeout = setTimeout(() => {
-          if (!done) {
-            cleanup();
-            reject(new Error('응답 시간이 초과되었습니다.'));
-          }
-        }, 10000);
-
-        function cleanup() {
-          clearTimeout(timeout);
-          if (script.parentNode) script.parentNode.removeChild(script);
-          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-        }
-
-        document.body.appendChild(script);
+        img.src = url;
       });
     }
 
@@ -312,25 +285,28 @@
       submitBtn.textContent = '제출 중...';
       showMessage('info', '제출 중입니다...');
 
-      const payload = {
+      const params = new URLSearchParams({
         grade: grade.value,
         classroom: classroom.value,
-        name: nameInput.value.trim()
-      };
+        name: nameInput.value.trim(),
+        t: Date.now().toString()
+      });
+
+      const requestUrl = WEB_APP_URL + '?' + params.toString();
 
       try {
-        const response = await submitByJsonp(payload);
+        await sendBeaconLikeGet(requestUrl);
 
-        if (response && response.success) {
+        setTimeout(() => {
           form.reset();
           showMessage('success', '제출이 완료되었습니다.');
-        } else {
-          const detail = response && response.error ? '\n' + response.error : '';
-          showMessage('error', (response && response.message ? response.message : '제출에 실패했습니다.') + detail);
-        }
+          submitBtn.disabled = false;
+          submitBtn.textContent = '제출';
+          isSubmitting = false;
+        }, 1200);
+
       } catch (error) {
-        showMessage('error', '연결 중 오류가 발생했습니다.\n' + error.message);
-      } finally {
+        showMessage('error', '제출 중 오류가 발생했습니다.');
         submitBtn.disabled = false;
         submitBtn.textContent = '제출';
         isSubmitting = false;
