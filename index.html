@@ -23,13 +23,10 @@
       --info-text: #3538cd;
       --shadow: 0 20px 50px rgba(79, 70, 229, 0.16);
       --radius-xl: 26px;
-      --radius-lg: 18px;
       --radius-md: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -117,7 +114,6 @@
     label {
       font-size: 14px;
       font-weight: 700;
-      color: var(--text);
     }
 
     .control {
@@ -130,16 +126,11 @@
       font-size: 16px;
       color: var(--text);
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .control:focus {
       border-color: rgba(79, 70, 229, 0.55);
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
-    }
-
-    .control::placeholder {
-      color: #98a2b3;
     }
 
     .submit-btn {
@@ -152,22 +143,13 @@
       color: #fff;
       font-size: 16px;
       font-weight: 800;
-      letter-spacing: -0.02em;
       cursor: pointer;
       box-shadow: 0 16px 32px rgba(79, 70, 229, 0.24);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 18px 36px rgba(79, 70, 229, 0.28);
     }
 
     .submit-btn:disabled {
       opacity: 0.7;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: 0 10px 22px rgba(79, 70, 229, 0.16);
     }
 
     .message {
@@ -178,26 +160,13 @@
       font-size: 14px;
       font-weight: 600;
       line-height: 1.5;
+      white-space: pre-line;
     }
 
-    .message.show {
-      display: block;
-    }
-
-    .message.info {
-      background: var(--info-bg);
-      color: var(--info-text);
-    }
-
-    .message.success {
-      background: var(--success-bg);
-      color: var(--success-text);
-    }
-
-    .message.error {
-      background: var(--error-bg);
-      color: var(--error-text);
-    }
+    .message.show { display: block; }
+    .message.info { background: var(--info-bg); color: var(--info-text); }
+    .message.success { background: var(--success-bg); color: var(--success-text); }
+    .message.error { background: var(--error-bg); color: var(--error-text); }
 
     .footer-note {
       margin: 14px 0 0;
@@ -206,38 +175,13 @@
       color: #98a2b3;
     }
 
-    iframe[name="hidden_iframe"] {
-      display: none;
-    }
-
     @media (max-width: 480px) {
-      body {
-        padding: 14px;
-        align-items: stretch;
-      }
-
-      .wrap {
-        max-width: 100%;
-      }
-
-      .card {
-        padding: 24px 18px 18px;
-        border-radius: 22px;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
-
-      .desc {
-        font-size: 14px;
-      }
-
-      .control,
-      .submit-btn {
-        height: 52px;
-        font-size: 15px;
-      }
+      body { padding: 14px; align-items: stretch; }
+      .wrap { max-width: 100%; }
+      .card { padding: 24px 18px 18px; border-radius: 22px; }
+      h1 { font-size: 26px; }
+      .desc { font-size: 14px; }
+      .control, .submit-btn { height: 52px; font-size: 15px; }
     }
   </style>
 </head>
@@ -248,13 +192,7 @@
       <h1>식사 출석 체크</h1>
       <p class="desc">학년, 반, 이름을 입력한 뒤 제출하세요.</p>
 
-      <form
-        id="attendanceForm"
-        class="form"
-        method="GET"
-        action="https://script.google.com/macros/s/AKfycbzoA-qBhMUNaqsaAPdIPa6pqGHNseD7l1p53Nkiz6y1eFl-QmT_8IeF4XEzxLMYmBS57w/exec"
-        target="hidden_iframe"
-      >
+      <form id="attendanceForm" class="form">
         <div class="field">
           <label for="grade">학년</label>
           <select id="grade" name="grade" class="control" required>
@@ -293,27 +231,22 @@
         <button id="submitBtn" type="submit" class="submit-btn">제출</button>
       </form>
 
-      <div id="messageBox" class="message info show">
-        학년, 반, 이름을 입력한 뒤 제출하세요.
-      </div>
-
+      <div id="messageBox" class="message info show">학년, 반, 이름을 입력한 뒤 제출하세요.</div>
       <p class="footer-note">제출한 내용은 구글 시트에 저장됩니다.</p>
     </div>
   </div>
 
-  <iframe name="hidden_iframe" title="hidden_iframe"></iframe>
-
   <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzoA-qBhMUNaqsaAPdIPa6pqGHNseD7l1p53Nkiz6y1eFl-QmT_8IeF4XEzxLMYmBS57w/exec';
+
     const form = document.getElementById('attendanceForm');
     const grade = document.getElementById('grade');
     const classroom = document.getElementById('classroom');
     const nameInput = document.getElementById('name');
     const submitBtn = document.getElementById('submitBtn');
     const messageBox = document.getElementById('messageBox');
-    const hiddenIframe = document.querySelector('iframe[name="hidden_iframe"]');
 
     let isSubmitting = false;
-    let submittedOnce = false;
 
     function showMessage(type, text) {
       messageBox.className = 'message show ' + type;
@@ -322,53 +255,94 @@
 
     function validateForm() {
       const name = nameInput.value.trim();
-
       if (!grade.value || !classroom.value || !name) {
         showMessage('error', '학년, 반, 이름을 입력한 뒤 제출하세요.');
         return false;
       }
-
       return true;
     }
 
-    form.addEventListener('submit', function (event) {
+    function submitByJsonp(params) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        const script = document.createElement('script');
+
+        params.callback = callbackName;
+        const query = new URLSearchParams(params).toString();
+        script.src = WEB_APP_URL + '?' + query;
+
+        let done = false;
+
+        window[callbackName] = function(response) {
+          done = true;
+          cleanup();
+          resolve(response);
+        };
+
+        script.onerror = function() {
+          cleanup();
+          reject(new Error('Apps Script 호출에 실패했습니다.'));
+        };
+
+        const timeout = setTimeout(() => {
+          if (!done) {
+            cleanup();
+            reject(new Error('응답 시간이 초과되었습니다.'));
+          }
+        }, 10000);
+
+        function cleanup() {
+          clearTimeout(timeout);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+        }
+
+        document.body.appendChild(script);
+      });
+    }
+
+    form.addEventListener('submit', async function(event) {
       event.preventDefault();
 
       if (isSubmitting) return;
       if (!validateForm()) return;
 
       isSubmitting = true;
-      submittedOnce = true;
       submitBtn.disabled = true;
       submitBtn.textContent = '제출 중...';
-
-      nameInput.value = nameInput.value.trim();
       showMessage('info', '제출 중입니다...');
 
-      form.submit();
-    });
+      const payload = {
+        grade: grade.value,
+        classroom: classroom.value,
+        name: nameInput.value.trim()
+      };
 
-    hiddenIframe.addEventListener('load', function () {
-      if (!submittedOnce) return;
+      try {
+        const response = await submitByJsonp(payload);
 
-      form.reset();
-      showMessage('success', '제출이 완료되었습니다.');
-      submitBtn.disabled = false;
-      submitBtn.textContent = '제출';
-      isSubmitting = false;
+        if (response && response.success) {
+          form.reset();
+          showMessage('success', '제출이 완료되었습니다.');
+        } else {
+          const detail = response && response.error ? '\n' + response.error : '';
+          showMessage('error', (response && response.message ? response.message : '제출에 실패했습니다.') + detail);
+        }
+      } catch (error) {
+        showMessage('error', '연결 중 오류가 발생했습니다.\n' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '제출';
+        isSubmitting = false;
+      }
     });
 
     [grade, classroom, nameInput].forEach((el) => {
       el.addEventListener('input', () => {
-        if (!isSubmitting) {
-          showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-        }
+        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
       });
-
       el.addEventListener('change', () => {
-        if (!isSubmitting) {
-          showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-        }
+        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
       });
     });
   </script>
