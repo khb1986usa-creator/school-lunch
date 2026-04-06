@@ -8,7 +8,7 @@
     :root {
       --bg-1: #f5f7ff;
       --bg-2: #eef2ff;
-      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-bg: rgba(255, 255, 255, 0.92);
       --text: #182230;
       --muted: #667085;
       --line: rgba(24, 34, 48, 0.08);
@@ -59,7 +59,7 @@
     .card {
       position: relative;
       background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.75);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
@@ -125,12 +125,12 @@
       height: 54px;
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.98);
       padding: 0 16px;
       font-size: 16px;
       color: var(--text);
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .control:focus {
@@ -161,10 +161,6 @@
     .submit-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 18px 36px rgba(79, 70, 229, 0.28);
-    }
-
-    .submit-btn:active {
-      transform: translateY(0);
     }
 
     .submit-btn:disabled {
@@ -256,9 +252,8 @@
         id="attendanceForm"
         class="form"
         method="GET"
-        action="https://docs.google.com/spreadsheets/d/1pjcu3t3w4FyDD_vlX6gZKvICj8fC7Sl0N6FkawilN2I/edit?usp=sharing"
+        action="https://script.google.com/macros/s/AKfycbzoA-qBhMUNaqsaAPdIPa6pqGHNseD7l1p53Nkiz6y1eFl-QmT_8IeF4XEzxLMYmBS57w/exec"
         target="hidden_iframe"
-        novalidate
       >
         <div class="field">
           <label for="grade">학년</label>
@@ -315,8 +310,10 @@
     const nameInput = document.getElementById('name');
     const submitBtn = document.getElementById('submitBtn');
     const messageBox = document.getElementById('messageBox');
+    const hiddenIframe = document.querySelector('iframe[name="hidden_iframe"]');
 
     let isSubmitting = false;
+    let submittedOnce = false;
 
     function showMessage(type, text) {
       messageBox.className = 'message show ' + type;
@@ -338,25 +335,27 @@
       event.preventDefault();
 
       if (isSubmitting) return;
-
       if (!validateForm()) return;
 
       isSubmitting = true;
+      submittedOnce = true;
       submitBtn.disabled = true;
       submitBtn.textContent = '제출 중...';
-      showMessage('info', '제출 중입니다...');
 
       nameInput.value = nameInput.value.trim();
+      showMessage('info', '제출 중입니다...');
 
       form.submit();
+    });
 
-      setTimeout(() => {
-        form.reset();
-        showMessage('success', '제출이 완료되었습니다.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = '제출';
-        isSubmitting = false;
-      }, 1000);
+    hiddenIframe.addEventListener('load', function () {
+      if (!submittedOnce) return;
+
+      form.reset();
+      showMessage('success', '제출이 완료되었습니다.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출';
+      isSubmitting = false;
     });
 
     [grade, classroom, nameInput].forEach((el) => {
