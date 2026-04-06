@@ -4,181 +4,315 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>식사 출석 체크</title>
+    <!-- Lucide Icons for aesthetic touch -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary-color: #4a90e2;
-            --bg-color: #f5f7fa;
+            --primary: #8b5cf6; /* 보라색 포인트 */
+            --primary-light: #ede9fe;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #333;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             padding: 20px;
-            box-sizing: border-box;
         }
 
-        .container {
-            background-color: var(--card-bg);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        .card {
+            background: var(--card-bg);
             width: 100%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 420px;
+            padding: 32px 24px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .badge i {
+            margin-right: 4px;
+            width: 14px;
+            height: 14px;
         }
 
         h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
         }
 
-        .input-group {
-            margin-bottom: 1rem;
-            text-align: left;
+        .subtitle {
+            color: var(--text-sub);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
         }
 
         select, input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
-            box-sizing: border-box;
+            height: 52px;
+            padding: 0 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            font-size: 16px;
+            color: var(--text-main);
             outline: none;
-            transition: border 0.2s;
+            transition: all 0.2s;
+            appearance: none;
+        }
+
+        /* 드롭다운 화살표 커스텀 */
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
         }
 
         select:focus, input:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
         }
 
         button {
             width: 100%;
-            padding: 15px;
-            background-color: var(--primary-color);
+            height: 56px;
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
-            margin-top: 1rem;
-            transition: background 0.3s;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
         }
 
         button:disabled {
-            background-color: #ccc;
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
         }
 
-        .info-text {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 1rem;
-        }
-
-        #resultView {
+        .loading-text {
             display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* 완료 화면 스타일 */
+        #successView {
+            display: none;
+            text-align: center;
+            padding: 40px 10px;
         }
 
         .success-icon {
-            font-size: 3rem;
-            color: #4CAF50;
-            margin-bottom: 1rem;
+            width: 72px;
+            height: 72px;
+            background: #dcfce7;
+            color: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="card">
+        <!-- 폼 화면 -->
         <div id="formView">
-            <h1>식사 출석 체크</h1>
-            <div class="input-group">
+            <div class="header">
+                <div class="badge">
+                    <i data-lucide="utensils"></i> 식사 기록
+                </div>
+                <h1>식사 출석 체크</h1>
+                <p class="subtitle">학년, 반, 이름을 입력한 뒤 제출하세요.</p>
+            </div>
+
+            <div class="form-group">
                 <label>학년</label>
                 <select id="grade">
-                    <option value="">학년 선택</option>
+                    <option value="" disabled selected>학년을 선택하세요</option>
                     <option value="1">1학년</option>
                     <option value="2">2학년</option>
                     <option value="3">3학년</option>
+                    <option value="4">4학년</option>
+                    <option value="5">5학년</option>
+                    <option value="6">6학년</option>
                 </select>
             </div>
-            <div class="input-group">
+
+            <div class="form-group">
                 <label>반</label>
                 <select id="classNum">
-                    <option value="">반 선택</option>
-                    <script>
-                        for(let i=1; i<=10; i++) document.write(`<option value="${i}">${i}반</option>`);
-                    </script>
+                    <option value="" disabled selected>반을 선택하세요</option>
                 </select>
             </div>
-            <div class="input-group">
+
+            <div class="form-group">
                 <label>이름</label>
-                <input type="text" id="userName" placeholder="이름을 입력하세요">
+                <input type="text" id="userName" placeholder="이름을 입력하세요" autocomplete="off">
             </div>
-            <p class="info-text">학년, 반, 이름을 입력한 뒤 제출하세요.</p>
-            <button onclick="submitData()" id="submitBtn">제출하기</button>
+
+            <button id="submitBtn" onclick="submitData()">제출하기</button>
+            
+            <div id="loadingText" class="loading-text">
+                데이터를 기록하고 있습니다...
+            </div>
+
+            <div class="footer-note">
+                제출한 내용은 구글 시트에 안전하게 저장됩니다.
+            </div>
         </div>
 
-        <div id="resultView">
-            <div class="success-icon">✓</div>
-            <h2>제출 완료!</h2>
-            <p>오늘의 급식 기록이 완료되었습니다.<br>맛있게 드세요!</p>
+        <!-- 완료 화면 -->
+        <div id="successView">
+            <div class="success-icon">
+                <i data-lucide="check" style="width: 40px; height: 40px;"></i>
+            </div>
+            <h1 style="color: var(--primary);">제출 완료!</h1>
+            <p class="subtitle" style="margin-top: 12px; line-height: 1.6;">
+                정상적으로 기록되었습니다.<br>맛있게 식사하세요!
+            </p>
         </div>
     </div>
 
     <script>
-        // 배포한 구글 앱스 스크립트 URL을 여기에 붙여넣으세요
-        const GAS_URL = "여기에_구글_앱스_스크립트_URL_입력";
+        // 1. 본인의 Google Apps Script 배포 URL(exec)을 입력하세요.
+        const GAS_URL = "여기에_구글_앱스_스크립트_배포_URL_입력";
+
+        // 초기화: 반 드롭다운 생성 (1~15반)
+        const classSelect = document.getElementById('classNum');
+        for (let i = 1; i <= 15; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i + '반';
+            classSelect.appendChild(opt);
+        }
+
+        // 아이콘 로드
+        lucide.createIcons();
 
         async function submitData() {
             const grade = document.getElementById('grade').value;
             const classNum = document.getElementById('classNum').value;
             const name = document.getElementById('userName').value.trim();
             const btn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loadingText');
 
             if (!grade || !classNum || !name) {
                 alert("학년, 반, 이름을 모두 확인해주세요.");
                 return;
             }
 
+            // UI 상태 업데이트
             btn.disabled = true;
-            btn.innerText = "처리 중...";
+            btn.innerText = "제출 중...";
+            loading.style.display = "block";
 
-            const payload = {
-                grade: grade,
-                classNum: classNum,
-                name: name
-            };
+            const payload = { grade, classNum, name };
 
             try {
-                // fetch를 이용한 데이터 전송 (CORS 대응을 위해 no-cors 모드 사용 가능성이 있으나 GAS는 보통 JSONP나 직접 호출 사용)
-                const response = await fetch(GAS_URL, {
+                /**
+                 * 깃허브 페이지(브라우저) -> 구글 스크립트 통신 시 
+                 * CORS 문제를 피하기 위해 'no-cors' 모드를 사용합니다.
+                 * 이 모드에서는 응답 본문을 읽을 수 없으므로 catch가 발생하지 않더라도
+                 * 서버에 데이터는 도달합니다.
+                 */
+                await fetch(GAS_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                document.getElementById('formView').style.display = 'none';
-                document.getElementById('resultView').style.display = 'block';
+                // 통신이 성공적으로 트리거되면 성공 화면으로 전환
+                setTimeout(() => {
+                    document.getElementById('formView').style.display = 'none';
+                    document.getElementById('successView').style.display = 'block';
+                }, 500);
+
             } catch (error) {
-                console.error(error);
-                alert("제출 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                console.error("Error:", error);
+                alert("제출 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.");
                 btn.disabled = false;
                 btn.innerText = "제출하기";
+                loading.style.display = "none";
             }
         }
     </script>
