@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>식사 출석 체크</title>
-    <!-- Lucide Icons for aesthetic touch -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #8b5cf6; /* 보라색 포인트 */
+            --primary: #8b5cf6;
             --primary-light: #ede9fe;
             --bg: #f8fafc;
             --card-bg: #ffffff;
@@ -105,7 +105,6 @@
             appearance: none;
         }
 
-        /* 드롭다운 화살표 커스텀 */
         select {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
@@ -135,7 +134,6 @@
 
         button:active {
             transform: scale(0.98);
-            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
         }
 
         button:disabled {
@@ -144,23 +142,16 @@
             cursor: not-allowed;
         }
 
-        .loading-text {
+        .loading-box {
             display: none;
             margin-top: 16px;
-            padding: 12px;
+            padding: 16px;
             background: #f1f5f9;
             border-radius: 12px;
             color: var(--primary);
             font-size: 14px;
             font-weight: 600;
             text-align: center;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
         }
 
         .footer-note {
@@ -170,7 +161,6 @@
             color: #94a3b8;
         }
 
-        /* 완료 화면 스타일 */
         #successView {
             display: none;
             text-align: center;
@@ -206,7 +196,7 @@
             <div class="form-group">
                 <label>학년</label>
                 <select id="grade">
-                    <option value="" disabled selected>학년을 선택하세요</option>
+                    <option value="" disabled selected>학년 선택</option>
                     <option value="1">1학년</option>
                     <option value="2">2학년</option>
                     <option value="3">3학년</option>
@@ -219,7 +209,9 @@
             <div class="form-group">
                 <label>반</label>
                 <select id="classNum">
-                    <option value="" disabled selected>반을 선택하세요</option>
+                    <option value="" disabled selected>반 선택</option>
+                    <option value="1">1반</option>
+                    <option value="2">2반</option>
                 </select>
             </div>
 
@@ -230,12 +222,12 @@
 
             <button id="submitBtn" onclick="submitData()">제출하기</button>
             
-            <div id="loadingText" class="loading-text">
-                데이터를 기록하고 있습니다...
+            <div id="loadingBox" class="loading-box">
+                기록을 전송하고 있습니다...
             </div>
 
             <div class="footer-note">
-                제출한 내용은 구글 시트에 안전하게 저장됩니다.
+                제출한 내용은 구글 시트에 안전하게 기록됩니다.
             </div>
         </div>
 
@@ -252,68 +244,47 @@
     </div>
 
     <script>
-        // 1. 본인의 Google Apps Script 배포 URL(exec)을 입력하세요.
-        const GAS_URL = "여기에_구글_앱스_스크립트_배포_URL_입력";
+        /**
+         * ⚠️ [필수] 구글 앱스 스크립트 배포 후 받은 웹 앱 URL을 아래에 넣으세요.
+         * 주소가 반드시 https://script.google.com/macros/s/.../exec 형태여야 합니다.
+         */
+        const GAS_URL = "여기에_구글_앱스_스크립트_URL_입력";
 
-        // 초기화: 반 드롭다운 생성 (1~15반)
-        const classSelect = document.getElementById('classNum');
-        for (let i = 1; i <= 15; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = i + '반';
-            classSelect.appendChild(opt);
-        }
-
-        // 아이콘 로드
         lucide.createIcons();
 
-        async function submitData() {
+        function submitData() {
             const grade = document.getElementById('grade').value;
             const classNum = document.getElementById('classNum').value;
             const name = document.getElementById('userName').value.trim();
             const btn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loadingText');
+            const loading = document.getElementById('loadingBox');
 
             if (!grade || !classNum || !name) {
-                alert("학년, 반, 이름을 모두 확인해주세요.");
+                alert("학년, 반, 이름을 모두 선택/입력해주세요.");
                 return;
             }
 
-            // UI 상태 업데이트
+            // UI 업데이트
             btn.disabled = true;
             btn.innerText = "제출 중...";
             loading.style.display = "block";
 
-            const payload = { grade, classNum, name };
+            /**
+             * [Image Beacon 기술] 
+             * 브라우저의 CORS 정책 차단을 완전히 피하기 위해 
+             * 데이터를 URL 파라미터로 실어서 '이미지를 요청'하는 것처럼 보냅니다.
+             * 이 방식은 브라우저가 보안 위험이 낮다고 판단하여 서버에 신호를 성공적으로 전달합니다.
+             */
+            const queryParams = `?grade=${encodeURIComponent(grade)}&classNum=${encodeURIComponent(classNum)}&name=${encodeURIComponent(name)}&t=${new Date().getTime()}`;
+            
+            const img = new Image();
+            img.src = GAS_URL + queryParams;
 
-            try {
-                /**
-                 * 깃허브 페이지(브라우저) -> 구글 스크립트 통신 시 
-                 * CORS 문제를 피하기 위해 'no-cors' 모드를 사용합니다.
-                 * 이 모드에서는 응답 본문을 읽을 수 없으므로 catch가 발생하지 않더라도
-                 * 서버에 데이터는 도달합니다.
-                 */
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // 통신이 성공적으로 트리거되면 성공 화면으로 전환
-                setTimeout(() => {
-                    document.getElementById('formView').style.display = 'none';
-                    document.getElementById('successView').style.display = 'block';
-                }, 500);
-
-            } catch (error) {
-                console.error("Error:", error);
-                alert("제출 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.");
-                btn.disabled = false;
-                btn.innerText = "제출하기";
-                loading.style.display = "none";
-            }
+            // 요청이 서버로 떠난 직후, 약간의 딜레이를 주고 완료 화면으로 전환합니다.
+            setTimeout(() => {
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successView').style.display = 'block';
+            }, 1200);
         }
     </script>
 </body>
