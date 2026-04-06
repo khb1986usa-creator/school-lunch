@@ -1,331 +1,186 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>식사 출석 체크</title>
-  <style>
-    :root {
-      --bg-1: #f5f7ff;
-      --bg-2: #eef2ff;
-      --card-bg: rgba(255, 255, 255, 0.92);
-      --text: #182230;
-      --muted: #667085;
-      --line: rgba(24, 34, 48, 0.08);
-      --primary: #4f46e5;
-      --primary-2: #7c3aed;
-      --primary-soft: rgba(79, 70, 229, 0.10);
-      --success-bg: #ecfdf3;
-      --success-text: #027a48;
-      --error-bg: #fef3f2;
-      --error-text: #b42318;
-      --info-bg: #eef4ff;
-      --info-text: #3538cd;
-      --shadow: 0 20px 50px rgba(79, 70, 229, 0.16);
-      --radius-xl: 26px;
-      --radius-md: 14px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식사 출석 체크</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
 
-    * { box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(191, 219, 254, 0.9) 0%, transparent 30%),
-        radial-gradient(circle at top right, rgba(221, 214, 254, 0.9) 0%, transparent 28%),
-        linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
-    }
+        .container {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
 
-    .wrap {
-      width: 100%;
-      max-width: 460px;
-    }
+        .input-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
 
-    .card {
-      position: relative;
-      background: var(--card-bg);
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      padding: 28px 22px 22px;
-      overflow: hidden;
-    }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
 
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto auto 0;
-      width: 100%;
-      height: 6px;
-      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-2) 100%);
-    }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s;
+        }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary-soft);
-      color: #3730a3;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 14px;
-    }
+        select:focus, input:focus {
+            border-color: var(--primary-color);
+        }
 
-    h1 {
-      margin: 0;
-      font-size: 30px;
-      line-height: 1.2;
-      letter-spacing: -0.03em;
-    }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
 
-    .desc {
-      margin: 10px 0 24px;
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--muted);
-    }
+        button:disabled {
+            background-color: #ccc;
+        }
 
-    .form {
-      display: grid;
-      gap: 16px;
-    }
+        .info-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1rem;
+        }
 
-    .field {
-      display: grid;
-      gap: 8px;
-    }
+        #resultView {
+            display: none;
+        }
 
-    label {
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .control {
-      width: 100%;
-      height: 54px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.98);
-      padding: 0 16px;
-      font-size: 16px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .control:focus {
-      border-color: rgba(79, 70, 229, 0.55);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
-    }
-
-    .submit-btn {
-      margin-top: 4px;
-      width: 100%;
-      height: 56px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 16px 32px rgba(79, 70, 229, 0.24);
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    .message {
-      display: none;
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.6;
-      white-space: pre-line;
-      word-break: break-all;
-    }
-
-    .message.show { display: block; }
-    .message.info { background: var(--info-bg); color: var(--info-text); }
-    .message.success { background: var(--success-bg); color: var(--success-text); }
-    .message.error { background: var(--error-bg); color: var(--error-text); }
-
-    .footer-note {
-      margin: 14px 0 0;
-      text-align: center;
-      font-size: 12px;
-      color: #98a2b3;
-    }
-
-    @media (max-width: 480px) {
-      body { padding: 14px; align-items: stretch; }
-      .wrap { max-width: 100%; }
-      .card { padding: 24px 18px 18px; border-radius: 22px; }
-      h1 { font-size: 26px; }
-      .desc { font-size: 14px; }
-      .control, .submit-btn { height: 52px; font-size: 15px; }
-    }
-  </style>
+        .success-icon {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="badge">🍽️ 식사 기록</div>
-      <h1>식사 출석 체크</h1>
-      <p class="desc">학년, 반, 이름을 입력한 뒤 제출하세요.</p>
 
-      <form id="attendanceForm" class="form">
-        <div class="field">
-          <label for="grade">학년</label>
-          <select id="grade" class="control" required>
-            <option value="">학년 선택</option>
-            <option value="1">1학년</option>
-            <option value="2">2학년</option>
-            <option value="3">3학년</option>
-            <option value="4">4학년</option>
-            <option value="5">5학년</option>
-            <option value="6">6학년</option>
-          </select>
+    <div class="container">
+        <div id="formView">
+            <h1>식사 출석 체크</h1>
+            <div class="input-group">
+                <label>학년</label>
+                <select id="grade">
+                    <option value="">학년 선택</option>
+                    <option value="1">1학년</option>
+                    <option value="2">2학년</option>
+                    <option value="3">3학년</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>반</label>
+                <select id="classNum">
+                    <option value="">반 선택</option>
+                    <script>
+                        for(let i=1; i<=10; i++) document.write(`<option value="${i}">${i}반</option>`);
+                    </script>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>이름</label>
+                <input type="text" id="userName" placeholder="이름을 입력하세요">
+            </div>
+            <p class="info-text">학년, 반, 이름을 입력한 뒤 제출하세요.</p>
+            <button onclick="submitData()" id="submitBtn">제출하기</button>
         </div>
 
-        <div class="field">
-          <label for="classroom">반</label>
-          <select id="classroom" class="control" required>
-            <option value="">반 선택</option>
-            <option value="1">1반</option>
-            <option value="2">2반</option>
-          </select>
+        <div id="resultView">
+            <div class="success-icon">✓</div>
+            <h2>제출 완료!</h2>
+            <p>오늘의 급식 기록이 완료되었습니다.<br>맛있게 드세요!</p>
         </div>
-
-        <div class="field">
-          <label for="name">이름</label>
-          <input id="name" type="text" class="control" maxlength="20" placeholder="이름 입력" required />
-        </div>
-
-        <button id="submitBtn" type="submit" class="submit-btn">제출</button>
-      </form>
-
-      <div id="messageBox" class="message info show">학년, 반, 이름을 입력한 뒤 제출하세요.</div>
-      <p class="footer-note">제출한 내용은 구글 시트에 저장됩니다.</p>
     </div>
-  </div>
 
-  <script>
-    const form = document.getElementById('attendanceForm');
-    const grade = document.getElementById('grade');
-    const classroom = document.getElementById('classroom');
-    const nameInput = document.getElementById('name');
-    const submitBtn = document.getElementById('submitBtn');
-    const messageBox = document.getElementById('messageBox');
+    <script>
+        // 배포한 구글 앱스 스크립트 URL을 여기에 붙여넣으세요
+        const GAS_URL = "여기에_구글_앱스_스크립트_URL_입력";
 
-    let isSubmitting = false;
-    let timeoutId = null;
+        async function submitData() {
+            const grade = document.getElementById('grade').value;
+            const classNum = document.getElementById('classNum').value;
+            const name = document.getElementById('userName').value.trim();
+            const btn = document.getElementById('submitBtn');
 
-    function showMessage(type, text) {
-      messageBox.className = 'message show ' + type;
-      messageBox.textContent = text;
-    }
-
-    function resetSubmitState() {
-      submitBtn.disabled = false;
-      submitBtn.textContent = '제출';
-      isSubmitting = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    }
-
-    function validateForm() {
-      const name = nameInput.value.trim();
-      if (!grade.value || !classroom.value || !name) {
-        showMessage('error', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-        return false;
-      }
-      return true;
-    }
-
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-
-      if (isSubmitting) return;
-      if (!validateForm()) return;
-
-      if (typeof google === 'undefined' || !google.script || !google.script.run) {
-        showMessage('error', '현재 페이지는 배포된 Apps Script 웹앱이 아닙니다.\n배포 후 받은 /exec 주소로 다시 접속하세요.');
-        return;
-      }
-
-      isSubmitting = true;
-      submitBtn.disabled = true;
-      submitBtn.textContent = '제출 중...';
-      showMessage('info', '제출 중입니다...');
-
-      timeoutId = setTimeout(function() {
-        showMessage('error', '응답이 지연되고 있습니다.\n배포된 /exec 주소로 접속했는지 확인하고 다시 시도하세요.');
-        resetSubmitState();
-      }, 10000);
-
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (response && response.success) {
-            form.reset();
-
-            let debugText = '';
-            if (response.debug) {
-              debugText =
-                '\n파일명: ' + response.debug.spreadsheetName +
-                '\n시트명: ' + response.debug.sheetName +
-                '\n마지막행: ' + response.debug.lastRow +
-                '\n시트ID: ' + response.debug.spreadsheetId;
+            if (!grade || !classNum || !name) {
+                alert("학년, 반, 이름을 모두 확인해주세요.");
+                return;
             }
 
-            showMessage('success', response.message + debugText);
-          } else {
-            const detail = response && response.error ? '\n' + response.error : '';
-            showMessage('error', (response && response.message ? response.message : '제출에 실패했습니다.') + detail);
-          }
-          resetSubmitState();
-        })
-        .withFailureHandler(function(error) {
-          showMessage('error', '연결 중 오류가 발생했습니다.\n' + (error && error.message ? error.message : error));
-          resetSubmitState();
-        })
-        .submitAttendance({
-          grade: grade.value,
-          classroom: classroom.value,
-          name: nameInput.value.trim()
-        });
-    });
+            btn.disabled = true;
+            btn.innerText = "처리 중...";
 
-    [grade, classroom, nameInput].forEach((el) => {
-      el.addEventListener('input', () => {
-        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-      });
-      el.addEventListener('change', () => {
-        if (!isSubmitting) showMessage('info', '학년, 반, 이름을 입력한 뒤 제출하세요.');
-      });
-    });
-  </script>
+            const payload = {
+                grade: grade,
+                classNum: classNum,
+                name: name
+            };
+
+            try {
+                // fetch를 이용한 데이터 전송 (CORS 대응을 위해 no-cors 모드 사용 가능성이 있으나 GAS는 보통 JSONP나 직접 호출 사용)
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('resultView').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert("제출 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                btn.disabled = false;
+                btn.innerText = "제출하기";
+            }
+        }
+    </script>
 </body>
 </html>
